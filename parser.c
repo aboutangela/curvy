@@ -72,12 +72,13 @@ void parse_file ( char * filename,
   c.red = 255;
   c.green = 0;
   c.blue = 255;
-  
-  if ( strcmp(filename, "stdin") == 0 ) 
+  double x,x0,x1,x2,x3,y,y0,y1,y2,y3,z,r;
+
+  if ( strcmp(filename, "stdin") == 0 )
     f = stdin;
   else
     f = fopen(filename, "r");
-  
+
   while ( fgets(line, sizeof(line), f) != NULL ) {
     line[strlen(line)-1]='\0';
     //printf(":%s:\n",line);
@@ -89,7 +90,24 @@ void parse_file ( char * filename,
     double theta;
     char axis;
 
-    if ( strncmp(line, "line", strlen(line)) == 0 ) {
+    if(!strncmp(line, "circle", strlen(line))){
+      fgets(line, sizeof(line), f);
+      sscanf(line, "%lf %lf %lf %lf", &x, &y, &z, &r);
+      add_circle(edges, x, y, z, r, 0.01);
+    }
+
+    else if(!strncmp(line, "hermite", strlen(line))) {
+      fgets(line, sizeof(line), f);
+      sscanf(line, "%lf %lf %lf %lf %lf %lf %lf %lf", &x0, &y0, &x1, &y1, &x2, &y2, &x3, &y3);
+      add_curve(edges, x0, y0, x1, y1, x2, y2, x3, y3, 0.01, HERMITE);
+    }
+    else if(!strncmp(line, "bezier", strlen(line))) {
+      fgets(line, sizeof(line), f);
+      sscanf(line, "%lf %lf %lf %lf %lf %lf %lf %lf", &x0, &y0, &x1, &y1, &x2, &y2, &x3, &y3);
+      add_curve(edges, x0, y0, x1, y1, x2, y2, x3, y3, 0.01,BEZIER);
+    }
+
+    else if ( strncmp(line, "line", strlen(line)) == 0 ) {
       fgets(line, sizeof(line), f);
       //printf("LINE\t%s", line);
 
@@ -159,6 +177,16 @@ void parse_file ( char * filename,
       draw_lines(edges, s, c);
       display( s );
     }//end display
+
+    else if ( strncmp(line, "save", strlen(line)) == 0 ) {
+      //printf("SAVE\t%s", line);
+      fgets(line, sizeof(line), f);
+      *strchr(line, '\n') = 0;
+      //printf("name: %s\n", line);
+      clear_screen(s);
+      draw_lines(edges, s, c);
+      save_extension(s, line);
+    }//end save
 
   }
 }
